@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <errno.h>
+#include <fcntl.h>
 
 # define RED "\033[1;31m"
 # define GREEN "\033[1;32m"
@@ -13,61 +16,268 @@
 # define RESET "\033[0m"
 
 
-size_t	ft_strlen(char *str);
-char	*ft_strcpy(char *dest, const char *src);
-int ft_strcmp(const char *first, const char *second);
+size_t		ft_strlen(char *str);
+char		*ft_strcpy(char *dest, const char *src);
+int			ft_strcmp(const char *first, const char *second);
+ssize_t		ft_write(int fd, const void *buf, size_t count);
+ssize_t		ft_read(int fd, void *buf, size_t count);
+char 		*ft_strdup(const char *s);
 
-// int	main(int ac, char **av)
-// {
-// 	printf("On entre ici ? ac = %d | av = %s\n", ac, av[1]);
-
-// 	int	res_std;
-// 	int res_ft;
-
-// 	if (ac <= 1)
-// 		return (0);
-	
-// 	av[1] = NULL;
-// 	printf("=================\n");
-// 	printf("Test de strlen : \n");
-// 	printf("=================\n");
-
-// 	res_std = strlen(av[1]);
-// 	res_ft = ft_strlen(av[1]);
-
-// 	printf("strlen standard = %d | ft_strlen = %d", res_std, res_ft);
-// 	if (res_std == res_ft)
-// 		printf(" |--> YOUPI C'EST BON !");
-// 	else
-// 		printf(" |--> HOUSTON, ON A UN PROBLEME...");
-// }
-
-
-
-int test_strcmp(void)
+void test_strdup(void)
 {
-	printf(ORANGE "========================\n");
-	printf("=   Test de strcmp :   =\n");
-	printf("========================\n\n" RESET);
+	printf(ORANGE "=====================================================================\n");
+	printf("=   Test de strdup :   =\n");
+	printf("=====================================================================\n\n" RESET);
+
+	char *src[] = {
+		"",									// Chaîne vide
+		"Ceci est une chaîne normale\n",	// Chaînes normales
+		"Chaîne longue : aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n",		// Chaînes différente
+		NULL								// Fin du tableau
+	};
+
+	char *test_title[] = {
+		"On duplique une chaîne vide\n",
+		"On duplique une chaîne normale\n",
+		"On duplique une longue chaîne\n",
+		NULL
+	};
+
+	char *ft_dest;
+	char *std_dest;
+
+	for (int i = 0; src[i] != NULL; i++)
+	{
+		printf(PURPLE "%s" RESET, test_title[i]);
+		printf("Adresse de la chaîne source : %p\n", (void *)src[i]);
+		ft_dest = ft_strdup(src[i]);
+		if (ft_dest == NULL) {
+			perror("malloc");
+			return;
+		}
+
+		std_dest = strdup(src[i]);
+		if (std_dest == NULL) {
+			perror("malloc");
+			free(ft_dest);
+			return;
+		}
+
+		printf("Adresse de la chaîne destination (ft_strdup) : %p\n", (void *)ft_dest);
+		printf("Adresse de la chaîne destination (strdup standard) : %p\n\n", (void *)std_dest);
+		printf("ft_strdup : 		Destination = %s\n", ft_dest);
+		printf("strdup standard :	Destination = %s", std_dest);
+		if (strcmp(ft_dest, std_dest) == 0)
+			printf(GREEN " |--> YOUPI C'EST BON !\n\n" RESET);
+		else
+			printf(RED " |--> HOUSTON, ON A UN PROBLEME...\n\n" RESET);
+	}
+	free(ft_dest);
+	free(std_dest);
+}
+
+void test_read(void)
+{
+	printf(ORANGE "=====================================================================\n");
+	printf("=   Test de read :   =\n");
+	printf("=====================================================================\n\n" RESET);
+
+	char buffer[100];
+	int ft_res;
+	int std_res;
+
+	// Test lecture depuis stdin (utilisateur doit taper quelque chose) -------
+	printf(PURPLE "Lecture depuis stdin (tapez quelque chose et appuyez sur Entrée) :\n\n" RESET);
+	write(1, RESET, strlen(RESET)); // sinon write écrit en purple...
+
+	errno = 0;
+	ft_res = ft_read(0, buffer, 99);
+	buffer[ft_res] = '\0'; // Ajouter un nul terminator à la fin de la chaîne
+	int ft_errno = errno;
+	printf("ft_read :	Return = %d, errno = %d, buffer = %s\n", ft_res, ft_errno, buffer);
+
+	errno = 0;
+	std_res = read(0, buffer, 99);
+	buffer[std_res] = '\0';
+	int std_errno = errno;
+	printf("read standard :	Return = %d, errno = %d, buffer = %s\n", std_res, std_errno, buffer);
+
+	if (ft_res == std_res && ft_errno == std_errno)
+		printf(GREEN " |--> YOUPI C'EST BON !\n\n" RESET);
+	else
+		printf(RED " |--> HOUSTON, ON A UN PROBLEME...\n\n" RESET);
+
+	// Test lecture depuis un fichier -----------------------------------------
+	printf(PURPLE "Lecture depuis un fichier :\n\n" RESET);
+
+	int fd = open("test_file.txt", O_RDONLY);
+	if (fd == -1)
+	{
+		perror("Erreur lors de l'ouverture du fichier");
+		return;
+	}
+
+	errno = 0;
+	ft_res = ft_read(fd, buffer, 99);
+	buffer[ft_res] = '\0';
+	ft_errno = errno;
+	printf("ft_read :	Return = %d, errno = %d, buffer = %s\n", ft_res, ft_errno, buffer);
+
+	lseek(fd, 0, SEEK_SET); // Repositionner le descripteur de fichier au début
+
+	errno = 0;
+	std_res = read(fd, buffer, 99);
+	buffer[std_res] = '\0';
+	std_errno = errno;
+	printf("read standard :	Return = %d, errno = %d, buffer = %s\n", std_res, std_errno, buffer);
+
+	if (ft_res == std_res && ft_errno == std_errno)
+		printf(GREEN " |--> YOUPI C'EST BON !\n\n" RESET);
+	else
+		printf(RED " |--> HOUSTON, ON A UN PROBLEME...\n\n" RESET);
+
+	close(fd);
+
+	// Test de errno en cas d'erreur (lecture depuis un fichier non valide)
+	printf(PURPLE "Test de lecture depuis un fichier non valide\n\n" RESET);
+	write(1, RESET, strlen(RESET));
+
+	errno = 0;
+	ft_res = ft_read(-1, buffer, 4);
+	ft_errno = errno;
+
+	errno = 0;
+	std_res = read(-1, buffer, 4);
+	std_errno = errno;
+
+	printf("\nft_read :	Return = %d, errno = %d\n", ft_res, ft_errno);
+	printf("read standard :	Return = %d, errno = %d", std_res, std_errno);
+	if (ft_res == std_res && ft_errno == std_errno)
+		printf(GREEN " |--> YOUPI C'EST BON !\n\n" RESET);
+	else
+		printf(RED " |--> HOUSTON, ON A UN PROBLEME...\n\n" RESET);
+}
+
+void test_write(void)
+{
+	printf(ORANGE "=====================================================================\n");
+	printf("=   Test de write :   =\n");
+	printf("=====================================================================\n\n" RESET);
 
 	char *first[] = {
-		"",							// Chaîne vide
-		"same string",				// Chaînes identiques
-		"First octet different",	// Chaînes différente
-		"Interior octet different",	// Chaînes différentes
+		"",									// Chaîne vide
+		"Ceci est une chaîne normale\n",	// Chaînes normales
+		"Chaîne longue : aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n",		// Chaînes différente
+		NULL								// Fin du tableau
+	};
+
+	char *test_title[] = {
+		"On écrit des chaînes vides",
+		"On écrit des chaînes normales",
+		"On écrit de longues chaînes",
+		NULL
+	};
+
+	int ft_res;
+	int std_res;
+	int ft_errno;
+	int std_errno;
+
+	// Test d'écriture sur sortie std -----------------------------------------
+	for (int i = 0; first[i] != NULL; i++)
+	{
+		printf(PURPLE "%s sur sortie standard\n\n" RESET, test_title[i]);
+		write(1, RESET, strlen(RESET)); // sinon write écrit en purple... 
+
+		errno = 0; // pour checker errno -> initialiser errno
+		ft_res = ft_write(1, first[i], ft_strlen(first[i]));
+		ft_errno = errno; // Sauvegarder errno après l'appel
+
+		errno = 0; // pour checker errno -> initialiser errno
+		std_res = write(1, first[i], strlen(first[i]));
+		std_errno = errno; // Sauvegarder errno après l'appel
+
+		printf("\nft_write : 		Return = %d, errno = %d\n", ft_res, ft_errno);
+		printf("write standard :	Return = %d, errno = %d", std_res, std_errno);
+		if (ft_res == std_res && ft_errno == std_errno)
+			printf(GREEN " |--> YOUPI C'EST BON !\n\n" RESET);
+		else
+			printf(RED " |--> HOUSTON, ON A UN PROBLEME...\n\n" RESET);
+	}
+
+	// Test d'écriture dans un fichier ----------------------------------------
+	printf(PURPLE "Ecriture sur un fichier\n\n" RESET);
+	write(1, RESET, strlen(RESET)); // sinon write écrit en purple...
+
+	int fd = open("test_file.txt", O_WRONLY);
+	if (fd == -1)
+	{
+		perror("Erreur lors de l'ouverture du fichier");
+		return;
+	}
+
+	errno = 0; // pour checker errno -> initialiser errno
+	ft_res = ft_write(fd, "Il était une fois, la vie !\n", ft_strlen("Il était une fois, la vie !\n"));
+	ft_errno = errno; // Sauvegarder errno après l'appel
+
+	errno = 0; // pour checker errno -> initialiser errno
+	std_res = write(fd, "Il était une fois, la vie !\n", ft_strlen("Il était une fois, la vie !\n"));
+	std_errno = errno; // Sauvegarder errno après l'appel
+
+	printf("\nft_write : 		Return = %d, errno = %d\n", ft_res, ft_errno);
+	printf("write standard :	Return = %d, errno = %d", std_res, std_errno);
+	if (ft_res == std_res && ft_errno == std_errno)
+		printf(GREEN " |--> YOUPI C'EST BON !\n\n" RESET);
+	else
+		printf(RED " |--> HOUSTON, ON A UN PROBLEME...\n\n" RESET);
+	
+	close(fd);
+
+	// Test de errno en cas d'erreur (écriture dans un fichier non valide) ----
+	printf(PURPLE "Test d'écriture dans un fichier non valide\n\n" RESET);
+	write(1, RESET, strlen(RESET));
+
+	errno = 0;
+	ft_res = ft_write(-1, "test", 4);
+	ft_errno = errno;
+
+	errno = 0;
+	std_res = write(-1, "test", 4);
+	std_errno = errno;
+
+	printf("\nft_write :        Return = %d, errno = %d\n", ft_res, ft_errno);
+	printf("write standard :  Return = %d, errno = %d", std_res, std_errno);
+	if (ft_res == std_res && ft_errno == std_errno)
+		printf(GREEN " |--> YOUPI C'EST BON !\n\n" RESET);
+	else
+		printf(RED " |--> HOUSTON, ON A UN PROBLEME...\n\n" RESET);
+	return;
+}
+
+void test_strcmp(void)
+{
+	printf(ORANGE "=====================================================================\n");
+	printf("=   Test de strcmp :   =\n");
+	printf("=====================================================================\n\n" RESET);
+
+	char *first[] = {
+		"",								// Chaîne vide
+		"same string",					// Chaînes identiques
+		"First octet different",		// Chaînes différente
+		"Interior octet different",		// Chaînes différentes
 		"Chaîne très très très grande",
 		"Chaîne petite",
-		NULL						// Fin du tableau
+		NULL							// Fin du tableau
 	};
 
 	char *second[] = {
-		"",							// Chaîne vide
-		"same string",				// Chaînes identiques
-		"first octet different",	// Chaînes différentes
-		"Interior Octet different",	// Chaînes différente
+		"",								// Chaîne vide
+		"same string",					// Chaînes identiques
+		"first octet different",		// Chaînes différentes
+		"Interior Octet different",		// Chaînes différente
 		"Chaîne petite",
 		"Chaîne très très très grande",
-		NULL						// Fin du tableau
+		NULL							// Fin du tableau
 	};
 
 	char *test_title[] = {
@@ -98,16 +308,14 @@ int test_strcmp(void)
 		else
 			printf(RED " |--> HOUSTON, ON A UN PROBLEME...\n\n" RESET);
 	}
-	return 0;
+	return;
 }
-
-
 
 int test_strcpy(void)
 {
-	printf(ORANGE "========================\n");
+	printf(ORANGE "=====================================================================\n");
 	printf("=   Test de strcpy :   =\n");
-	printf("========================\n\n" RESET);
+	printf("=====================================================================\n\n" RESET);
 
 
 	char *ft_dest = NULL;
@@ -120,15 +328,16 @@ int test_strcpy(void)
 		NULL						// Fin du tableau
 	};
 
+	char *test_title[] = {
+		"Chaîne vide\n",
+		"Chaîne normale\n",
+		"Chaîne plus longue\n",
+		NULL
+	};
+
 	for (int i = 0; src[i] != NULL; i++)
 	{
-		if (i == 0)
-			printf(PURPLE "Chaîne vide\n" RESET);
-		else if (i == 1)
-			printf(PURPLE "Chaîne normale\n" RESET);
-		else if (i == 2)
-			printf(PURPLE "Chaîne plus longue\n" RESET);
-
+		printf(PURPLE "%s" RESET, test_title[i]);
 		ft_dest = malloc(strlen(src[i]) + 1);
 		if (ft_dest == NULL) {
 			perror("malloc");
@@ -137,6 +346,7 @@ int test_strcpy(void)
 		std_dest = malloc(strlen(src[i]) + 1);
 		if (std_dest == NULL) {
 			perror("malloc");
+			free(ft_dest);
 			return 1;
 		}
 		ft_dest = ft_strcpy(ft_dest, src[i]);
@@ -144,33 +354,23 @@ int test_strcpy(void)
 
 		printf("ft_strcpy : 		Destination = %s\n", ft_dest);
 		printf("strcpy standard :	Destination = %s", std_dest);
-		// if (strlen(ft_dest) == strlen(std_dest))
-		// if (ft_dest == std_dest) -> NON ! Ca compare les adresses mémoire...
 		if (strcmp(ft_dest, std_dest) == 0)
 			printf(GREEN " |--> YOUPI C'EST BON !\n\n" RESET);
 		else
 			printf(RED " |--> HOUSTON, ON A UN PROBLEME...\n\n" RESET);
 	}
 
-	// char *null_string = NULL;
-	// if (null_string == NULL) {
-	// 	printf(RED "ATTENTION : vous essayez de copier une chaîne NULL..." RESET);
-	// }
-
 	free(ft_dest);
 	free(std_dest);
 	return 0;
 }
 
-
-
 void test_strlen(void)
 {
-	printf(ORANGE "========================\n");
+	printf(ORANGE "=====================================================================\n");
 	printf("=   Test de strlen :   =\n");
-	printf("========================\n\n" RESET);
+	printf("=====================================================================\n\n" RESET);
 
-	// CAS NORMAUX
 	char *strings[] = {
 		"",							// Chaîne vide
 		"hello",					// Chaîne normale
@@ -178,14 +378,16 @@ void test_strlen(void)
 		NULL						// Fin du tableau
 	};
 
+	char *test_title[] = {
+		"Chaîne vide\n",
+		"Chaîne normale\n",
+		"Chaîne plus longue\n",
+		NULL
+	};
+
 	for (int i = 0; strings[i] != NULL; i++)
 	{
-		if (i == 0)
-			printf(PURPLE "Chaîne vide\n" RESET);
-		else if (i == 1)
-			printf(PURPLE "Chaîne normale\n" RESET);
-		else if (i == 2)
-			printf(PURPLE "Chaîne plus longue\n" RESET);
+		printf(PURPLE "%s" RESET, test_title[i]);
 		printf("ft_strlen : 		Length of '%s' is %zu.\n", strings[i], ft_strlen(strings[i]));
 		printf("strlen standard :	Length of '%s' is %zu.", strings[i], strlen(strings[i]));
 		if (strlen(strings[i]) == ft_strlen(strings[i]))
@@ -208,8 +410,27 @@ void test_strlen(void)
 
 int main()
 {
-    // test_strlen(); // Tester ft_strlen
-    // test_strcpy(); // Tester ft_strcpy
+	printf(GREEN "Let's test ! Please enter 'Return' between each test." RESET);
+	getchar();
+
+	test_strlen(); // Tester ft_strlen
+	getchar();
+
+	test_strcpy(); // Tester ft_strcpy
+	getchar();
+
 	test_strcmp(); // Tester ft_strcmp
-    return 0;
+	getchar();
+
+	test_write(); // Tester ft_write
+	getchar();
+
+	test_read(); // Tester ft_read
+	getchar();
+
+	test_strdup(); // Tester ft_write
+	printf(GREEN "End of tests ! Please enter 'Return' to quit." RESET);
+	getchar();
+
+	return 0;
 }

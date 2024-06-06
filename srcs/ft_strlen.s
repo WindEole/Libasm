@@ -25,13 +25,13 @@ ft_strlen:
 
 	; 3/ on lance la boucle de comparaison / comptage
 
-	.loop:
-		cmp 	byte [rdi + rax], 0		; compare le caractère actuel avec NULL (pointeur vers rdi + longueur rax)
-		je		.end					; si le caractère est NULL -> terminer
-		inc		rax 					; si le caractère n'est pas NULL -> incrémenter la longueur dans rax
-		jmp 	.loop 					; boucle pour le caractère suivant
+.loop:
+	cmp 	byte [rdi + rax], 0		; compare le caractère actuel avec NULL (pointeur vers rdi + longueur rax)
+	je		.end					; si le caractère est NULL -> terminer
+	inc		rax 					; si le caractère n'est pas NULL -> incrémenter la longueur dans rax
+	jmp 	.loop 					; boucle pour le caractère suivant
 
 	; 4/ fin de la fonction : on retourne la longueur contenue dans le registre rax
 
-	.end:
-		ret 							; retourne la longueur dans rax (convention de retour)
+.end:
+	ret 							; retourne la longueur dans rax (convention de retour)

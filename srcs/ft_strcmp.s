@@ -26,28 +26,28 @@ ft_strcmp:
 
 	; 2/ on lance la boucle de comparaison / comptage
 
-	.loop:
-		mov		al, byte [rdi + rcx]	; charge 1 octet de rsi(first) dans al (futur rax !)
-		test	al, al					; verifie si l'octet est nul
-		jz		.end					; si nul, on termine.
+.loop:
+	mov		al, byte [rdi + rcx]	; charge 1 octet de rsi(first) dans al (futur rax !)
+	test	al, al					; verifie si l'octet est nul
+	jz		.end					; si nul, on termine.
 
-		mov		r8b, byte [rsi + rcx]	; charge 1 octet de rdi(second) dans r9b
-		test 	r8b, r8b 				; verifie si l'octet est nul
-		jz		.end					; si nul, on termine.
+	mov		r8b, byte [rsi + rcx]	; charge 1 octet de rdi(second) dans r9b
+	test 	r8b, r8b 				; verifie si l'octet est nul
+	jz		.end					; si nul, on termine.
 
-		cmp 	al, r8b					; soustrait r8b de al
-		jne		.inequal				; si les caractères ne sont pas égaux -> on soustrait
+	cmp 	al, r8b					; soustrait r8b de al
+	jne		.inequal				; si les caractères ne sont pas égaux -> on soustrait
 
-		inc 	rcx 					; incrémente le registre compteur
-		jmp 	.loop 					; boucle pour le caractère suivant
+	inc 	rcx 					; incrémente le registre compteur
+	jmp 	.loop 					; boucle pour le caractère suivant
 
 	; 3/ fin de la fonction : on retourne le contenu du registre rax
 
-	.inequal:
-		sub		rax, r8
-		ret
+.inequal:
+	sub		rax, r8
+	ret
 
-	.end:
-		sub		rax, rax
-		ret
+.end:
+	sub		rax, rax
+	ret
 
