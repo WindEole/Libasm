@@ -17,7 +17,7 @@ ft_strlen:
 	; 1/ on vérifie si l'argument envoyé est un pointeur NULL
 
 	; test	rdi, rdi	; teste si rdi est NULL
-	; je		.end	; si le rdi est NULL -> terminer
+	; je	.end		; si le rdi est NULL -> terminer
 
 	; 2/ on initialise le registre rax à 0 en effectuant un XOR (exclusif) entre rax et lui-même
 

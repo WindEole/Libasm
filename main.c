@@ -262,6 +262,8 @@ void test_strcmp(void)
 
 	char *first[] = {
 		"",								// Chaîne vide
+		"",								// ch1 vide vs ch2 normale
+		"chaine non vide",				// ch1 normale vs ch2 vide
 		"same string",					// Chaînes identiques
 		"First octet different",		// Chaînes différente
 		"Interior octet different",		// Chaînes différentes
@@ -272,6 +274,8 @@ void test_strcmp(void)
 
 	char *second[] = {
 		"",								// Chaîne vide
+		"Chaine non vide",				// ch1 vide vs ch2 normale
+		"",								// ch1 normale vs ch2 vide
 		"same string",					// Chaînes identiques
 		"first octet different",		// Chaînes différentes
 		"Interior Octet different",		// Chaînes différente
@@ -281,7 +285,9 @@ void test_strcmp(void)
 	};
 
 	char *test_title[] = {
-		"On compare des chaînes vides\n",
+		"On compare deux chaînes vides\n",
+		"ch1 vide vs ch2 normale\n",
+		"ch1 normale vs ch2 vide\n",
 		"On compare deux chaînes identiques\n",
 		"On compare des chaînes différentes au 1er octet\n",
 		"On compare des chaînes différentes à octet milieu\n",
@@ -301,13 +307,52 @@ void test_strcmp(void)
 		ft_res = ft_strcmp(first[i], second[i]);
 		std_res = strcmp(first[i], second[i]);
 
-		printf("ft_strcmp : 		Destination = %d\n", ft_res);
-		printf("strcmp standard :	Destination = %d", std_res);
+		printf("ft_strcmp : 		Result = %d\n", ft_res);
+		printf("strcmp standard :	Result = %d", std_res);
 		if (ft_res == std_res)
-			printf(GREEN " |--> YOUPI C'EST BON !\n\n" RESET);
+		{
+			printf(GREEN " |--> YOUPI C'EST BON ! ");
+			if (ft_res > 0)
+				printf("str1 plus grande que str2.\n\n" RESET);
+			else if (ft_res < 0)
+				printf("str1 plus petite que str2.\n\n" RESET);
+			else if (ft_res == 0)
+				printf("str1 et str2 sont égales.\n\n" RESET);
+		}
 		else
 			printf(RED " |--> HOUSTON, ON A UN PROBLEME...\n\n" RESET);
 	}
+
+	printf(PURPLE "Test d'envoi de paramètres constants\n" RESET);
+
+	printf(CYAN "résultats précalculés : \n" RESET);
+	ft_res = ft_strcmp("ch1 normale vs ch2 vide", "");
+	std_res = strcmp("ch1 normale vs ch2 vide", "");
+	printf("str1 normale vs str2 vide :	%i=%i\n", ft_res, std_res);
+
+	ft_res = ft_strcmp("", "");
+	std_res = strcmp("", "");
+	printf("str1 vide vs str2 vide :	%i=%i\n", ft_res, std_res);
+
+	ft_res = ft_strcmp("", "ch1 vide vs ch2 normale");
+	std_res = strcmp("", "ch1 vide vs ch2 normale");
+	printf("str1 vide vs str2 normale :	%i=%i\n", ft_res, std_res);
+
+	ft_res = ft_strcmp("chaine petite", "chaine beaucoup beaucoup plus grande");
+	std_res = strcmp("chaine petite", "chaine beaucoup beaucoup plus grande");
+	printf("str1 petite vs str2 grande :	%i=%i\n", ft_res, std_res);
+
+	ft_res = ft_strcmp("chaine beaucoup beaucoup plus grande", "chaine petite");
+	std_res = strcmp("chaine beaucoup beaucoup plus grande", "chaine petite");
+	printf("str1 grande vs str2 petite :	%i=%i\n", ft_res, std_res);
+
+	printf(CYAN "\nfonctions inline : \n" RESET);
+	printf("str1 normale vs str2 vide :	%i=%i\n", ft_strcmp("12345678901", ""), strcmp("12345678901", ""));
+	printf("str1 vide vs str2 vide :	%i=%i\n", ft_strcmp("", ""), strcmp("", ""));
+	printf("str1 vide vs str2 normale :	%i=%i\n", ft_strcmp("", "12345678901"), strcmp("", "12345678901"));
+	printf("str1 petite vs str2 grande :	%i=%i\n", ft_strcmp("123", "12345678901"), strcmp("123", "12345678901"));
+	printf("str1 grande vs str2 petite :	%i=%i\n", ft_strcmp("12345678901", "1234"), strcmp("12345678901", "1234"));
+
 	return;
 }
 

@@ -26,28 +26,25 @@ ft_strcmp:
 
 	; 2/ on lance la boucle de comparaison / comptage
 
-.loop:
-	mov		al, byte [rdi + rcx]	; charge 1 octet de rsi(first) dans al (futur rax !)
-	test	al, al					; verifie si l'octet est nul
-	jz		.end					; si nul, on termine.
+.loop
+	mov		al, byte [rdi + rcx]	; charge 1 octet de rdi(first) dans al (futur rax !)
+	mov		r8b, byte [rsi + rcx]	; charge 1 octet de rsi(second) dans r8b
 
-	mov		r8b, byte [rsi + rcx]	; charge 1 octet de rdi(second) dans r9b
-	test 	r8b, r8b 				; verifie si l'octet est nul
-	jz		.end					; si nul, on termine.
+	cmp 	al, 0 					; on compare 0 à l'octet al
+	je 		.end 					; si c'est egal, go end
 
-	cmp 	al, r8b					; soustrait r8b de al
-	jne		.inequal				; si les caractères ne sont pas égaux -> on soustrait
+	cmp 	r8b, 0 					; on compare 0 à l'octet r8b
+	je 		.end 					; si c'est egal, go end
+
+	cmp 	al, r8b 				; on compare l'octet r8b a l'octet al
+	jne 	.end 					; si c'est différent, go end
 
 	inc 	rcx 					; incrémente le registre compteur
 	jmp 	.loop 					; boucle pour le caractère suivant
 
-	; 3/ fin de la fonction : on retourne le contenu du registre rax
-
-.inequal:
-	sub		rax, r8
-	ret
-
 .end:
-	sub		rax, rax
+	; 3/ on move les petits registres vers les grands avec movzx, pour récupérer le signe, et on soustrait les valeurs
+	movzx 	rax, al 				; on move al dans rax (movzx copie un registre de taille inférieure dans un registre de plus grande taille)
+	movzx 	rbx, r8b 				; on move r8b dans rbx
+	sub 	rax, rbx 				; on soustrait rbx à rax, resultat dans rax
 	ret
-

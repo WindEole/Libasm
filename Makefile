@@ -10,7 +10,7 @@ INC = -Iincludes
 
 # En-dessous : pour compiler le main de test !
 CC = clang # NON ! Il vaut mieux compiler avec clang pour éviter les flags PIE (Clang sécurise cela par défaut ! Par contre il faudra revoir strcpy...)
-CCFLAGS = -Wall -Wextra -Werror
+CCFLAGS = -Wall -Wextra -Werror -fno-builtin
 SANITIZE = -g3 -fomit-frame-pointer
 
 ASM_SRCS =  srcs/ft_strlen.s \

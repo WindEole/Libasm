@@ -22,20 +22,20 @@ ft_strdup:
 	; en convention d'appel x86-64, le 1er argument est passé dans le registre RDI
 
 	; 1/ on veut la taille de notre chaine source, on incrémente sa taille de 1
-	mov		r8, rdi 		; on met le pointeur de destination dans r9 (sauvegarde)
+	mov		r9, rdi 		; on met le pointeur de destination dans r9 (sauvegarde)
 	call	ft_strlen		; on veut la taille de notre chaine (elle est dans rdi, son résultat sera dans rax)
 	mov		rdi, rax		; maintenant rdi contient la longueur de la chaine s
 	inc 	rdi 			; on incrémente avant allocation mémoire (pour le \0 terminal)
 
 	; 2/ on malloc la taille de notre chaine + 1
-	push	r8				; selon x86 calling convention, le registre n'est pas protégé, sa valeur n'est pas fiable après un call, donc on force sa sauvegarde
+	push	r9				; selon x86 calling convention, le registre n'est pas protégé, sa valeur n'est pas fiable après un call, donc on force sa sauvegarde
 	call 	malloc			; malloc est appelé sur rdi, son résultat est dans rax
 	cmp 	rax, 0 			; check si malloc a bien fonctionné (echec = NULL et pas de maj errno !)
 	je		.null_ptr		; on s'arrête là si malloc échoue !
-	pop 	r8				; on restaure le registre après le call
+	pop 	r9				; on restaure le registre après le call
 
 	; 3/ malloc ok -> on fait la copie !
-	mov		rsi, r8 		; on met le pointeur source sauvegardé dans rsi
+	mov		rsi, r9 		; on met le pointeur source sauvegardé dans rsi
 	mov 	rdi, rax		; on met le pointeur retour de malloc dans rdi
 	call	ft_strcpy		; on copie rsi dans rdi. Pas de maj errno. Dans rax : ptr sur la chaine copiée
 	ret
